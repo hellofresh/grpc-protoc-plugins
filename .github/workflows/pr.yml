@@ -1,0 +1,27 @@
+name: Build Artifacts
+
+on:
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  linux:
+    name: windows@amd64
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          repository: grpc/grpc
+          ref: v1.35.0
+
+      - name: Install Basilisk
+        shell: pwsh
+        run: |
+          Invoke-WebRequest -Uri https://github.com/bazelbuild/bazelisk/releases/download/v1.7.5/bazelisk-windows-amd64.exe -OutFile c:\windows\system32\bazel.exe
+
+      - name: Build grpc_php_plugin and grpc_pyhon_plugin
+        run: |
+          bazel build src/compiler:grpc_php_plugin
+          bazel build src/compiler:grpc_python_plugin

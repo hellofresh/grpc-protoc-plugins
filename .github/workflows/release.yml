@@ -2,8 +2,7 @@ name: Build Artifacts
 
 on:
   release:
-    types:
-      - created
+    types: [ created ]
 
 jobs:
   linux:
