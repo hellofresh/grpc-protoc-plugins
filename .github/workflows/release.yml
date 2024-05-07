@@ -25,33 +25,20 @@ jobs:
 
       - name: Install Basilisk
         run: |
-          wget https://github.com/bazelbuild/bazelisk/releases/download/v1.7.5/bazelisk-linux-amd64
+          wget https://github.com/bazelbuild/bazelisk/releases/download/v1.19.0/bazelisk-linux-amd64
           chmod a+x bazelisk-linux-amd64
           sudo mv bazelisk-linux-amd64 /usr/local/bin/bazel
 
-      - name: Build grpc_php_plugin and grpc_pyhon_plugin
+      - name: Build grpc_pyhon_plugin
         run: |
-          bazel build src/compiler:grpc_php_plugin
           bazel build src/compiler:grpc_python_plugin
       - name: Archive artifacts
         env:
           VERSION: ${{ steps.get_release.outputs.tag_name }}
         run: |
           cd bazel-bin/src/compiler/
-          cp grpc_php_plugin grpc-php-plugin
-          tar czf grpc-php-plugin.${VERSION}.linux.amd64.tar.gz grpc-php-plugin
           cp grpc_python_plugin grpc-python-plugin
           tar czf grpc-python-plugin.${VERSION}.linux.amd64.tar.gz grpc-python-plugin
-
-      - name: Upload Release Asset for grpc_php_plugin
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.get_release.outputs.upload_url }}
-          asset_path: bazel-bin/src/compiler/grpc-php-plugin.${{ steps.get_release.outputs.tag_name }}.linux.amd64.tar.gz
-          asset_name: grpc-php-plugin.${{ steps.get_release.outputs.tag_name }}.linux.amd64.tar.gz
-          asset_content_type: application/gzip
 
       - name: Upload Release Asset for grpc_python_plugin
         uses: actions/upload-release-asset@v1
@@ -63,9 +50,9 @@ jobs:
           asset_name: grpc-python-plugin.${{ steps.get_release.outputs.tag_name }}.linux.amd64.tar.gz
           asset_content_type: application/gzip
 
-  macos:
+  macos_amd64:
     name: macos@amd64
-    runs-on: macos-latest
+    runs-on: macos-latest-large
 
     steps:
       - name: Get release
@@ -82,33 +69,20 @@ jobs:
 
       - name: Install Basilisk
         run: |
-          wget https://github.com/bazelbuild/bazelisk/releases/download/v1.7.5/bazelisk-darwin-amd64
+          wget https://github.com/bazelbuild/bazelisk/releases/download/v1.19.0/bazelisk-darwin-amd64
           chmod a+x bazelisk-darwin-amd64
           sudo mv bazelisk-darwin-amd64 /usr/local/bin/bazel
 
-      - name: Build grpc_php_plugin and grpc_python_plugin
+      - name: Build grpc_python_plugin
         run: |
-          bazel build src/compiler:grpc_php_plugin
           bazel build src/compiler:grpc_python_plugin
       - name: Archive artifacts
         env:
           VERSION: ${{ steps.get_release.outputs.tag_name }}
         run: |
           cd bazel-bin/src/compiler/
-          cp grpc_php_plugin grpc-php-plugin
-          tar czf grpc-php-plugin.${VERSION}.darwin.amd64.tar.gz grpc-php-plugin
           cp grpc_python_plugin grpc-python-plugin
           tar czf grpc-python-plugin.${VERSION}.darwin.amd64.tar.gz grpc-python-plugin
-
-      - name: Upload Release Asset for grpc_php_plugin
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.get_release.outputs.upload_url }}
-          asset_path: bazel-bin/src/compiler/grpc-php-plugin.${{ steps.get_release.outputs.tag_name }}.darwin.amd64.tar.gz
-          asset_name: grpc-php-plugin.${{ steps.get_release.outputs.tag_name }}.darwin.amd64.tar.gz
-          asset_content_type: application/gzip
 
       - name: Upload Release Asset for grpc_python_plugin
         uses: actions/upload-release-asset@v1
@@ -118,4 +92,48 @@ jobs:
           upload_url: ${{ steps.get_release.outputs.upload_url }}
           asset_path: bazel-bin/src/compiler/grpc-python-plugin.${{ steps.get_release.outputs.tag_name }}.darwin.amd64.tar.gz
           asset_name: grpc-python-plugin.${{ steps.get_release.outputs.tag_name }}.darwin.amd64.tar.gz
+          asset_content_type: application/gzip
+
+  macos_arm64:
+    name: macos@arm64
+    runs-on: macos-13-xlarge
+
+    steps:
+      - name: Get release
+        id: get_release
+        uses: bruceadams/get-release@v1.2.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          repository: grpc/grpc
+          ref: ${{ steps.get_release.outputs.tag_name }}
+
+      - name: Install Basilisk
+        run: |
+          wget https://github.com/bazelbuild/bazelisk/releases/download/v1.19.0/bazelisk-darwin-arm64
+          chmod a+x bazelisk-darwin-arm64
+          sudo mv bazelisk-darwin-arm64 /usr/local/bin/bazel
+
+      - name: Build grpc_python_plugin
+        run: |
+          bazel build src/compiler:grpc_python_plugin
+      - name: Archive artifacts
+        env:
+          VERSION: ${{ steps.get_release.outputs.tag_name }}
+        run: |
+          cd bazel-bin/src/compiler/
+          cp grpc_python_plugin grpc-python-plugin
+          tar czf grpc-python-plugin.${VERSION}.darwin.arm64.tar.gz grpc-python-plugin
+
+      - name: Upload Release Asset for grpc_python_plugin
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.get_release.outputs.upload_url }}
+          asset_path: bazel-bin/src/compiler/grpc-python-plugin.${{ steps.get_release.outputs.tag_name }}.darwin.arm64.tar.gz
+          asset_name: grpc-python-plugin.${{ steps.get_release.outputs.tag_name }}.darwin.arm64.tar.gz
           asset_content_type: application/gzip
