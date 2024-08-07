@@ -1,9 +1,11 @@
 name: Build Artifacts
 
-on:
-  release:
-    types:
-      - created
+on: push
+
+# on:
+#   release:
+#     types:
+#       - created
 
 jobs:
   build:
@@ -11,21 +13,29 @@ jobs:
       fail-fast: true
       matrix:
         config:
-          - name: linux@amd64
+          # Checkout https://github.com/actions/runner-images?tab=readme-ov-file#available-images
+          - name: linux
             os: ubuntu-latest
             platform: linux
-          - name: macos@amd64
+            arch: amd64
+          - name: macos
+            os: macos-13
+            platform: darwin
+            arch: amd64
+          - name: macos
             os: macos-latest
             platform: darwin
+            arch: arm64
 
     runs-on: ${{ matrix.config.os }}
-    name: ${{ matrix.config.name }}
+    name: ${{ matrix.config.name }}@${{ matrix.config.arch }}
     steps:
       - uses: actions/github-script@v7
         id: get_release
         with:
           script: |
-            const tag = context.ref.replace('refs/tags/', '');
+            // const tag = context.ref.replace('refs/tags/', '');
+            const tag = 'v1.46.7';
             const { owner, repo } = context.repo;
             const { data: { upload_url } } = await github.rest.repos.getReleaseByTag({ owner, repo, tag });
 
@@ -40,9 +50,9 @@ jobs:
 
       - name: Install Basilisk
         run: |
-          wget https://github.com/bazelbuild/bazelisk/releases/download/v1.7.5/bazelisk-${{ matrix.config.platform }}-amd64
-          chmod a+x bazelisk-${{ matrix.config.platform }}-amd64
-          sudo mv bazelisk-${{ matrix.config.platform }}-amd64 /usr/local/bin/bazel
+          wget https://github.com/bazelbuild/bazelisk/releases/download/v1.7.5/bazelisk-${{ matrix.config.platform }}-${{ matrix.config.arch }}
+          chmod a+x bazelisk-${{ matrix.config.platform }}-${{ matrix.config.arch }}
+          sudo mv bazelisk-${{ matrix.config.platform }}-${{ matrix.config.arch }} /usr/local/bin/bazel
 
       - name: Build grpc_php_plugin and grpc_pyhon_plugin
         run: |
@@ -54,9 +64,9 @@ jobs:
         run: |
           cd bazel-bin/src/compiler/
           cp grpc_php_plugin grpc-php-plugin
-          tar czf grpc-php-plugin.${VERSION}.${{ matrix.config.platform }}.amd64.tar.gz grpc-php-plugin
+          tar czf grpc-php-plugin.${VERSION}.${{ matrix.config.platform }}.${{ matrix.config.arch }}.tar.gz grpc-php-plugin
           cp grpc_python_plugin grpc-python-plugin
-          tar czf grpc-python-plugin.${VERSION}.${{ matrix.config.platform }}.amd64.tar.gz grpc-python-plugin
+          tar czf grpc-python-plugin.${VERSION}.${{ matrix.config.platform }}.${{ matrix.config.arch }}.tar.gz grpc-python-plugin
 
       - name: Upload Release Asset for grpc_php_plugin
         uses: actions/upload-release-asset@v1
@@ -64,8 +74,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.get_release.outputs.upload_url }}
-          asset_path: bazel-bin/src/compiler/grpc-php-plugin.${{ steps.get_release.outputs.tag }}.${{ matrix.config.platform }}.amd64.tar.gz
-          asset_name: grpc-php-plugin.${{ steps.get_release.outputs.tag }}.${{ matrix.config.platform }}.amd64.tar.gz
+          asset_path: bazel-bin/src/compiler/grpc-php-plugin.${{ steps.get_release.outputs.tag }}.${{ matrix.config.platform }}.${{ matrix.config.arch }}.tar.gz
+          asset_name: grpc-php-plugin.${{ steps.get_release.outputs.tag }}.${{ matrix.config.platform }}.${{ matrix.config.arch }}.tar.gz
           asset_content_type: application/gzip
 
       - name: Upload Release Asset for grpc_python_plugin
@@ -74,6 +84,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.get_release.outputs.upload_url }}
-          asset_path: bazel-bin/src/compiler/grpc-python-plugin.${{ steps.get_release.outputs.tag }}.${{ matrix.config.platform }}.amd64.tar.gz
-          asset_name: grpc-python-plugin.${{ steps.get_release.outputs.tag }}.${{ matrix.config.platform }}.amd64.tar.gz
+          asset_path: bazel-bin/src/compiler/grpc-python-plugin.${{ steps.get_release.outputs.tag }}.${{ matrix.config.platform }}.${{ matrix.config.arch }}.tar.gz
+          asset_name: grpc-python-plugin.${{ steps.get_release.outputs.tag }}.${{ matrix.config.platform }}.${{ matrix.config.arch }}.tar.gz
           asset_content_type: application/gzip
