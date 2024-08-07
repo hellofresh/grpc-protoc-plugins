@@ -1,11 +1,9 @@
 name: Build Artifacts
 
-on: push
-
-# on:
-#   release:
-#     types:
-#       - created
+on:
+  release:
+    types:
+      - created
 
 jobs:
   build:
@@ -27,8 +25,7 @@ jobs:
         id: get_release
         with:
           script: |
-            // const tag = context.ref.replace('refs/tags/', '');
-            const tag = 'v1.46.7';
+            const tag = context.ref.replace('refs/tags/', '');
             const { owner, repo } = context.repo;
             const { data: { upload_url } } = await github.rest.repos.getReleaseByTag({ owner, repo, tag });
 
