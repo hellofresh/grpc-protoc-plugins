@@ -15,7 +15,7 @@ jobs:
             os: ubuntu-latest
             platform: linux
           - name: macos@amd64
-            os: macos-latest
+            os: macos-13
             platform: darwin
 
     runs-on: ${{ matrix.config.os }}
